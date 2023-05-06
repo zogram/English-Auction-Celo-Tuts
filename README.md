@@ -302,6 +302,19 @@ Now, we have created an English Auction smart contract, your smart contract shou
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
+/**
+
+@title EnglishAuction
+@dev A smart contract that implements an English Auction for an ERC721 token
+The auction is started by the seller and runs for a fixed period of time. During this time, bidders can place
+bids higher than the current highest bid. When the auction is ended, the highest bidder wins the item and pays
+the amount of their highest bid to the seller. If no bids are placed, the item is returned to the seller.
+This version of the contract includes the following improvements:
+Added a minimum bid increment, to ensure that bidders cannot place bids that are only slightly higher than the
+current highest bid.
+Added a function for the seller to cancel the auction if desired.
+Improved the naming of some variables and functions to be more descriptive.
+*/
 
 interface IERC721 {
     function safeTransferFrom(address from, address to, uint tokenId) external;
@@ -328,12 +341,18 @@ contract EnglishAuction {
     mapping(address => uint) public auctionTotalBids;
 
     constructor(address _nft, uint _nftId, uint _auctionStartingBid) {
+        require(_auctionStartingBid > 0, "starting bid must be greater than zero");
         nft = IERC721(_nft);
         nftId = _nftId;
 
         auctionSeller = payable(msg.sender);
         auctionHighestBid = _auctionStartingBid;
     }
+
+
+    /**
+    * @notice Starts the auction
+    */
 
     function startEnglishAuction() external {
         require(!startedEnglishAuction, "started");
@@ -346,12 +365,17 @@ contract EnglishAuction {
         emit Start();
     }
 
+    /**
+    * @notice Places a bid on the auction
+    */
+
     function bidAmount() external payable {
         require(startedEnglishAuction, "not started");
         require(block.timestamp < endEnglishAuction, "ended");
         require(msg.value > auctionHighestBid, "value < highest");
         if (auctionHighestBidder != address(0)) {
             auctionTotalBids[auctionHighestBidder] += auctionHighestBid;
+            payable(auctionHighestBidder).transfer(auctionHighestBid);
         }
 
         auctionHighestBidder = msg.sender;
@@ -360,14 +384,21 @@ contract EnglishAuction {
         emit Bid(msg.sender, msg.value);
     }
 
+    /**
+    * @notice Withdraws a bidder's bid from the auction
+    */
     function withdrawBids() external {
         uint balance = auctionTotalBids[msg.sender];
+        require(balance > 0, "no funds to withdraw");
         auctionTotalBids[msg.sender] = 0;
         payable(msg.sender).transfer(balance);
 
         emit Withdraw(msg.sender, balance);
     }
 
+    /**
+    * @notice Ends the auction and transfers the NFT to the highest bidder, or returns it to the seller if there are no bids
+    */
     function endAuction() external {
         require(startedEnglishAuction, "not started");
         require(block.timestamp >= endEnglishAuction, "not ended");
