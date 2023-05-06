@@ -48,6 +48,8 @@ Navigate to [The Remix IDE](https://remix.ethereum.org/) or any other IDE compat
 
 In the **Remix IDE**, create a new file. Name it `EnglishAuction.sol`. This will contain our smart contract code. Open the file.
 
+<img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/create-file.png" height="500" />
+
 ### Step 2
 
 Copy the code below, and paste it into the opened `EnglishAuction.sol` file.
@@ -394,6 +396,8 @@ If you don't know how to build and deploy one, go through this tutorial on how t
 
 After you are done deploying the contract, mint an NFT by calling and passing the necessary parameter on the **safeMint or mint** function.
 
+<img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/safemint.png" height="500" />
+
 ### Step 2: Deploy English Auction Smart Contract
 
 Follow the steps below to deploy your English auction on the celo alfajores network.
@@ -413,6 +417,8 @@ Follow the steps below to deploy your English auction on the celo alfajores netw
     2. `_nftId`: This is a unique identifier or id for the NFT you want to auction.
         
     3. `__auctionStartingBid`: This is the minimum bid amount that a bidder must place to participate in the auction. Adjusted according to your preference.
+    
+    <img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/deployauction.png" height="500" />
         
 6. Click on the **deploy** button to deploy the smart contract.
     
@@ -434,6 +440,8 @@ In this step, you are to approve the transfer of ownership of the NFT minted to 
 3. Enter the **address** of your English auction smart contract and the NFT's **id**.
     
 4. Call and approve the transaction.
+
+<img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/approve-correct.png" height="500" />
     
 
 ### Test Smart Contract Using Laika
