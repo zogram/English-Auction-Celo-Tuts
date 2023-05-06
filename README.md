@@ -1,10 +1,59 @@
 # How to Build An English Auction Smart Contract On The Celo Blockchain
 
-English Auction is a type of auction in which bidders openly compete against each other, with each subsequent bid being higher than the previous bid. This style of auction is also known as an ascending-price auction.
+English Auction is a type of auction in which bidders openly compete against each other, with each subsequent bid being higher than the previous bid. This style of auction is also known as an **ascending-price auction**.
 
 A smart contract is a self-executing contract that is capable of enforcing the terms of an agreement. In the context of an English Auction, a smart contract can be used to govern the bidding process and the transfer of ownership of an item to the highest bidder, in our case it's an NFT.
 
 In this article, you will learn how to implement an NFT English auction smart contract on the Celo blockchain network. Finally, we will demonstrate how our English smart contract works.
+
+## Table of Contents
+
+* [Table of Contents](#table-of-contents)
+    
+* [Prerequisites](#prerequisites)
+    
+* [Requirements](#requirements)
+    
+* [English Auction Smart Contract Development](#english-auction-smart-contract-development)
+    
+    * [Step 1: Create Solidity File](#step-1--create-solidity-file)
+        
+    * [Step 2: Add IERC721 Interface](#step-2--add--ierc721-interface)
+        
+    * [Step 3: Add State Variables](#step-3--add-state-variables)
+        
+    * [Step 4: Create Constructor Function](#step-4--create-constructor-function)
+        
+    * [Step 5: Create `startEnglishAuction` Function](#step-5--create--startenglishauction--function)
+        
+    * [Step 6: Create `bidAmount` Function](#step-6--create--bidamount--function)
+        
+    * [Step 7: Create `withdrawBids` Function](#step-7--create--withdrawbids--function)
+        
+    * [Step 8: Create `endAuction` Function](#step-8--create--endauction--function)
+        
+* [Smart Contract Deployment](#smart-contract-deployment)
+    
+    * [Step 1: Deploy and Mint NFT](#step-1--deploy-and-mint-nft)
+        
+    * [Step 2: Deploy English Auction Smart Contract](#step-2--deploy-english-auction-smart-contract)
+        
+    * [Step 3: Approve English Auction Smart Contract](#step-3--approve-english-auction-smart-contract)
+        
+    * [Test Smart Contract Using Laika](#test-smart-contract-using-laika)
+        
+        * [Testing the `startEnglishAuction` function](#testing-the--startenglishauction--function)
+            
+        * [Testing the `bidAmount` function](#testing-the--bidamount--function)
+            
+        * [Testing The `auctionHighestBidder` function](#testing-the--auctionhighestbidder--function)
+            
+        * [Testing The `withdrawBids` function](#testing-the--withdrawbids--function)
+            
+        * [Testing The `endAuction` function](#testing-the--endauction--function)
+            
+* [Conclusion](#conclusion)
+    
 
 ## Prerequisites
 
@@ -23,13 +72,13 @@ Before you get started with this tutorial, make sure you have a basic understand
 
 ## Requirements
 
-To successfully build this smart contract, your system should have the following tools:
+To successfully build this smart contract, your computer should have the following tools:
 
 * A chromium-based web browser
     
 * An internet connection
     
-* The Celo plugin activated in Remix IDE
+* [The Celo plugin activated in Remix IDE](https://docs.celo.org/developer/deploy/remix)
     
 * [The Remix IDE](https://remix.ethereum.org/)
     
@@ -42,15 +91,15 @@ To successfully build this smart contract, your system should have the following
 
 ## English Auction Smart Contract Development
 
-Navigate to [The Remix IDE](https://remix.ethereum.org/) or any other IDE compatible with the Solidity programming language. Follow the steps below to create an English auction smart contract.
+Navigate to [The Remix IDE](https://remix.ethereum.org/) or any other IDE compatible with the Solidity programming language. Then Follow the steps below to create an English auction smart contract.
 
-### Step 1
+### Step 1: Create a Solidity File
 
 In the **Remix IDE**, create a new file. Name it `EnglishAuction.sol`. This will contain our smart contract code. Open the file.
 
-<img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/create-file.png" height="500" />
+![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/create-file.png)
 
-### Step 2
+### Step 2: Add IERC721 Interface
 
 Copy the code below, and paste it into the opened `EnglishAuction.sol` file.
 
@@ -69,9 +118,9 @@ At the top level of our contract, we have a comment that specifies the license t
 
 Next, we defined the version of the Solidity compiler that should be used to compile our smart contract code. In our case, we specified `version 0.8.17`.
 
-Next, we declared the IERC721 interface. IERC721 are standards that provide a way to interact with non-fungible tokens (NFTs). The IERC721 interface ensures that contracts and applications that implement the IERC721 interface are compatible with one another. In other words, these contracts and applications can easily transfer NFTs between one another.
+Next, we declared the [IERC721 interface](https://docs.openzeppelin.com/contracts/3.x/api/token/erc721). IERC721 are standards that provide a way to interact with non-fungible tokens (NFTs). The IERC721 interface ensures that contracts and applications that implement the IERC721 interface are compatible with one another. In other words, these contracts and applications can easily transfer NFTs between one another.
 
-### Step 3
+### Step 3: Add State Variables
 
 Add the code below to `EnglishAuction.sol` file.
 
@@ -133,7 +182,7 @@ Next, we declared some variables involving the **bids**. These include:
 * `mapping(address => uint) public auctionTotalBids`: This is a public mapping that maps addresses to their respective bid amounts. Whenever a bidder makes a new bid, the `address => uint` pair is added to the mapping. Where `address` is the address of the bidder and `uint` is the amount they bid.
     
 
-### Step 4
+### Step 4: Create a Constructor Function
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -161,10 +210,10 @@ The above code is a constructor function. It initializes some of our variables d
     
 * The `payable` keyword indicates that the `auctionSeller` address can receive Celo.
     
-* The `auctionHighestBid` variable is a storage variable that stores the starting bid for the auction. The value of `auctionHighestBid` changes has higher bids are made.
+* The `auctionHighestBid` variable is a storage variable that stores the starting bid for the auction. The value of `auctionHighestBid` changes as higher bids are made.
     
 
-### Step 4
+### Step 5: Create `startEnglishAuction` Function
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -175,7 +224,7 @@ function startEnglishAuction() external {
 
         nft.transferFrom(msg.sender, address(this), nftId);
         startedEnglishAuction = true;
-        endEnglishAuction = block.timestamp + 2 days;
+        endEnglishAuction = uint32(block.timestamp + 2 days);
 
         emit Start();
     }
@@ -196,12 +245,13 @@ The `startEnglishAuction` function starts an auction when called. In the `startE
 * `emit Start()` - an `emit` statement is used to trigger the `Start` event, indicating that the auction has been started.
     
 
-### Step 5
+### Step 6: Create `bidAmount` Function
 
 Add the code at the end of `EnglishAuction` contract.
 
 ```solidity
 function bidAmount() external payable {
+        require(msg.sender != auctionSeller, "auction seller");
         require(startedEnglishAuction, "not started");
         require(block.timestamp < endEnglishAuction, "ended");
         require(msg.value > auctionHighestBid, "value < highest");
@@ -233,7 +283,7 @@ The `bidAmount` function allows potential bidders to bid once the auction starts
 * `emit Bid(msg.sender, msg.value)` - The `emit` statement triggers the `Bid` event, indicating that a new bid has been made and includes the new highest bidder's address and the amount they bid.
     
 
-### Step 6
+### Step 7: Create `withdrawBids` Function
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -247,7 +297,7 @@ function withdrawBids() external {
     }
 ```
 
-The `withdrawBids` function allows bidders who aere not the highest bidders to withdraw their bids. In the `withdrawBids` function, we have the following code:
+The `withdrawBids` function allows bidders who were not the highest bidders to withdraw their bids. In the `withdrawBids` function, we have the following code:
 
 * `uint balance = auctionTotalBids[msg.sender]` - This retrieves the total bid amount of the current caller (i.e., `msg.sender`) from the `auctionTotalBids` mapping and stores it in a local variable called `balance`.
     
@@ -258,7 +308,7 @@ The `withdrawBids` function allows bidders who aere not the highest bidders to w
 * `emit Withdraw(msg.sender, balance)` - Finally, the function emits a `Withdraw` event that notifies the user that their bid has been withdrawn by passing in `msg.sender` and `balance` as parameters.
     
 
-### Step 7
+### Step 8: Create `endAuction` Function
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -297,7 +347,7 @@ The `endAuction` function allows auction seller to end the auction. In the `endA
 * Finally, the function emits an `End` event with the `auctionHighestBidder` and `auctionHighestBid` as parameters, which notifies the users who participated in the auction about the result.
     
 
-Now, we have created an English Auction smart contract, your smart contract shouyld look like the one below.
+Now, we have created an English Auction smart contract, your smart contract should look like the one below.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -341,12 +391,13 @@ contract EnglishAuction {
 
         nft.transferFrom(msg.sender, address(this), nftId);
         startedEnglishAuction = true;
-        endEnglishAuction = block.timestamp + 2 days;
+        endEnglishAuction = uint32(block.timestamp + 2 days);
 
         emit Start();
     }
 
     function bidAmount() external payable {
+        require(msg.sender != auctionSeller, "auction seller");
         require(startedEnglishAuction, "not started");
         require(block.timestamp < endEnglishAuction, "ended");
         require(msg.value > auctionHighestBid, "value < highest");
@@ -396,11 +447,11 @@ If you don't know how to build and deploy one, go through this tutorial on how t
 
 After you are done deploying the contract, mint an NFT by calling and passing the necessary parameter on the **safeMint or mint** function.
 
-<img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/safemint.png" height="500" />
+![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/safemint.png)
 
 ### Step 2: Deploy English Auction Smart Contract
 
-Follow the steps below to deploy your English auction on the celo alfajores network.
+Follow the steps below to deploy your English auction on the Celo Alfajores network.
 
 1. Activate the **Remix IDE Celo plugin**.
     
@@ -417,9 +468,10 @@ Follow the steps below to deploy your English auction on the celo alfajores netw
     2. `_nftId`: This is a unique identifier or id for the NFT you want to auction.
         
     3. `__auctionStartingBid`: This is the minimum bid amount that a bidder must place to participate in the auction. Adjusted according to your preference.
-    
-    <img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/deployauction.png" height="500" />
         
+    
+    ![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/deployauction.png)
+    
 6. Click on the **deploy** button to deploy the smart contract.
     
 7. Confirm the completion of the smart contract in the Celo wallet extension.
@@ -440,9 +492,9 @@ In this step, you are to approve the transfer of ownership of the NFT minted to 
 3. Enter the **address** of your English auction smart contract and the NFT's **id**.
     
 4. Call and approve the transaction.
-
-<img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/approve-correct.png" height="500" />
     
+
+![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/approve-correct.png)
 
 ### Test Smart Contract Using Laika
 
@@ -493,10 +545,9 @@ Let's go ahead to test these functions. You will receive a response for each fun
 
 1. Click on the `auctionHighestBidder` function.
     
-
-1. Click on the **send** button close to the contract address input field to get the auction's highest bidder.
+2. Click on the **send** button close to the contract address input field to get the auction's highest bidder.
     
-2. Confirm the transaction in your Metamask wallet.
+3. Confirm the transaction in your Metamask wallet.
     
 
 You can continually switch wallet accounts to make a bid higher the the previous bids.
@@ -507,10 +558,9 @@ Accounts that have been outbid can withdraw their bids with the `withdrawBids`fu
 
 1. Click on the `withdrawBids` function.
     
-
-1. Click on the **send** button close to the contract address input field to end the auction.
+2. Click on the **send** button close to the contract address input field to end the auction.
     
-2. Confirm the transaction in your Metamask wallet
+3. Confirm the transaction in your Metamask wallet
     
 
 #### Testing The `endAuction` function
@@ -519,10 +569,9 @@ After 2 days you can end the auction by following the steps below:
 
 1. Click on the `endAuction` function.
     
-
-1. Click on the **send** button close to the contract address input field to end the auction.
+2. Click on the **send** button close to the contract address input field to end the auction.
     
-2. Confirm the transaction in your Metamask wallet
+3. Confirm the transaction in your Metamask wallet
     
 
 Feel free to try out other functions if you'd like.
