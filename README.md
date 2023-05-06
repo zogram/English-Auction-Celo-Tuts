@@ -55,7 +55,7 @@ In the **Remix IDE**, create a new file. Name it `EnglishAuction.sol`. This will
 Copy the code below, and paste it into the opened `EnglishAuction.sol` file.
 
 ```solidity
-// SPDX-License-Identifier: MIT
+// : MIT
 pragma solidity ^0.8.17;
 
 interface IERC721 {
@@ -95,56 +95,102 @@ contract EnglishAuction {
     mapping(address => uint) public auctionTotalBids;
 }
 ```
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.9;
 
-The contract defines four events that can be emitted (i.e., triggered) during the execution of the contract. These events are:
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-* `Start()`
-    
-* `Bid()`
-    
-* `Withdraw()`
-    
-* `End()`.
-    
+contract EnglishAuction is ERC721Holder {
+    using SafeMath for uint256;
 
-Events are used to provide feedback to the users of the contract when certain actions are taken or conditions are met.
+    event AuctionStarted();
+    event BidPlaced(address indexed bidder, uint256 amount);
+    event BidWithdrawn(address indexed bidder, uint256 amount);
+    event AuctionEnded(address winner, uint256 amount);
 
-Next, we have two public variables that define the NFT to be sold in the auction, these public variables are:
+    IERC721 public nft;
+    uint256 public nftId;
+    uint256 public auctionStartTime;
+    uint256 public auctionEndTime;
+    uint256 public auctionStartingBid;
 
-* `IERC721 public nft` - This is a public variable that stores the NFT to be auctioned.
-    
-* `uint public nftId` - This is another public integer variable. It stores the unique token ID of the non-fungible token to be auctioned in this smart contract.
-    
+    address payable public auctionSeller;
+    address public highestBidder;
+    uint256 public highestBid;
+    mapping(address => uint256) public totalBids;
 
-Next, we declared some variables involving the **bids**. These include:
+    constructor(address _nft, uint256 _nftId, uint256 _auctionStartingBid) {
+        require(_nft != address(0), "NFT address is invalid");
+        require(_auctionStartingBid > 0, "Auction starting bid must be greater than 0");
 
-* `address payable public auctionSeller`: This is a public variable of type `address payable`, which stores the address of the seller who created the auction. The `payable` keyword allows this address to receive funds.
-    
-* `uint public endEnglishAuction`: Another public variable of type `uint`, which stores the timestamp when the auction will end.
-    
-* `bool public startedEnglishAuction`: This public boolean variable keeps track of whether the auction has started or not. Its value is `true` if the auction has started, and `false` otherwise.
-    
-* `bool public endedEnglishAuction`: This public boolean variable keeps track of whether the auction has ended or not. Its value is `true` if the auction has ended, and `false` otherwise.
-    
-* `address public auctionHighestBidder`: This public variable of type `address` stores the address of the highest bidder in the auction.
-    
-* `uint public auctionHighestBid`: Another public variable of type `uint`, which stores the highest bid amount made in the auction so far.
-    
-* `mapping(address => uint) public auctionTotalBids`: This is a public mapping that maps addresses to their respective bid amounts. Whenever a bidder makes a new bid, the `address => uint` pair is added to the mapping. Where `address` is the address of the bidder and `uint` is the amount they bid.
-    
-
-### Step 4
-
-Add the code at the end of `EnglishAuction` contract.
-
-```solidity
-constructor(address _nft, uint _nftId, uint _auctionStartingBid) {
         nft = IERC721(_nft);
         nftId = _nftId;
-
+        auctionStartingBid = _auctionStartingBid;
         auctionSeller = payable(msg.sender);
-        auctionHighestBid = _auctionStartingBid;
     }
+
+    modifier onlyAuctionSeller() {
+        require(msg.sender == auctionSeller, "Only auction seller can call this function");
+        _;
+    }
+
+    modifier auctionStarted() {
+        require(block.timestamp >= auctionStartTime, "Auction not started");
+        _;
+    }
+
+    modifier auctionEnded() {
+        require(block.timestamp >= auctionEndTime, "Auction not ended");
+        _;
+    }
+
+    function startAuction() external onlyAuctionSeller {
+        require(auctionStartTime == 0, "Auction already started");
+
+        nft.safeTransferFrom(msg.sender, address(this), nftId);
+        auctionStartTime = block.timestamp;
+        auctionEndTime = auctionStartTime.add(2 days);
+
+        emit AuctionStarted();
+    }
+
+    function placeBid() external payable auctionStarted {
+        require(msg.value > highestBid, "Bid amount must be greater than highest bid");
+
+        uint256 previousBid = totalBids[highestBidder];
+        uint256 newBid = msg.value.sub(highestBid);
+
+        totalBids[highestBidder] = previousBid.add(highestBid);
+        highestBidder = msg.sender;
+        highestBid = msg.value;
+        totalBids[highestBidder] = newBid;
+
+        emit BidPlaced(msg.sender, msg.value);
+    }
+
+    function withdrawBid() external auctionStarted {
+        require(msg.sender != highestBidder, "Highest bidder cannot withdraw bid");
+
+        uint256 bidAmount = totalBids[msg.sender];
+        require(bidAmount > 0, "Bidder has no bids to withdraw");
+
+        totalBids[msg.sender] = 0;
+        payable(msg.sender).transfer(bidAmount);
+
+        emit BidWithdrawn(msg.sender, bidAmount);
+    }
+
+    function endAuction() external onlyAuctionSeller auctionEnded {
+        require(highestBid > 0, "Auction has no bids");
+
+        nft.safeTransferFrom(address(this), highestBidder, nftId);
+        auctionSeller.transfer(highestBid);
+
+        emit AuctionEnded(highestBidder, highestBid);
+
+
 ```
 
 The above code is a constructor function. It initializes some of our variables during the deployment of our smart contract. Below is a proper breakdown of the code above:
