@@ -97,7 +97,7 @@ Navigate to [The Remix IDE](https://remix.ethereum.org/) or any other IDE compat
 
 In the **Remix IDE**, create a new file. Name it `EnglishAuction.sol`. This will contain our smart contract code. Open the file.
 
-![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/create-file.png align="left")
+![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/create-file.png)
 
 ### Step 2: Add IERC721 Interface
 
@@ -447,7 +447,7 @@ If you don't know how to build and deploy one, go through this tutorial on how t
 
 After you are done deploying the contract, mint an NFT by calling and passing the necessary parameter on the **safeMint or mint** function.
 
-![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/safemint.png align="left")
+![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/safemint.png)
 
 ### Step 2: Deploy English Auction Smart Contract
 
@@ -470,7 +470,7 @@ Follow the steps below to deploy your English auction on the Celo Alfajores netw
     3. `__auctionStartingBid`: This is the minimum bid amount that a bidder must place to participate in the auction. Adjusted according to your preference.
         
     
-    ![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/deployauction.png align="left")
+    ![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/deployauction.png)
     
 6. Click on the **deploy** button to deploy the smart contract.
     
@@ -494,7 +494,7 @@ In this step, you are to approve the transfer of ownership of the NFT minted to 
 4. Call and approve the transaction.
     
 
-![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/approve-correct.png align="left")
+![](https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/approve-correct.png)
 
 ### Test Smart Contract Using Laika
 
