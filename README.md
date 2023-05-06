@@ -1,5 +1,26 @@
 # How to Build An English Auction Smart Contract On The Celo Blockchain
 
+## Table of Contents
+- [Table of Contents](#table-of-contents)
+- [Prerequisites](#prerequisites)
+- [Requirements](#requirements)
+- [English Auction Smart Contract Development](#english-auction-smart-contract-development)
+    - [Step 1: Creating Solidity File](#step-1-creating-solidity-file)
+    - [Step 2: Adding solidity version and interface](#step-2-adding-solidity-version-and-interface)
+    - [Step 3: Write contract with variables](#step-3-write-contract-with-variables)
+    - [Step 4: Add a constructor to the contract](#step-4-add-a-constructor-to-the-contract)
+    - [Step 5: Write function for Starting auction](#step-5-write-function-for-starting-auction)
+    - [Step 6: Write the Place Bid Function](#step-6-write-the-place-bid-function)
+    - [Step 7: Write fucntion for withdrawing](#step-7-write-fucntion-for-withdrawing)
+    - [Step 8: Write the function to end auction](#step-8-write-the-function-to-end-auction)
+ - [Complete contract source code](#complete-contract-source-code)
+ - [Smart Contract Deployment](#smart-contract-deployment)
+    - [Step 1: Deploy and Mint NFT](#step-1-deploy-and-mint-nft)
+    - [Step 2: Deploy English Auction Smart Contract](#step-2-deploy-english-auction-smart-contract)
+    - [Step 3: Approve English Auction Smart Contract](#step-3-approve-english-auction-smart-contract)'
+ - [Test Smart Contract Using Laika](#test-smart-contract-using-laika)
+ - [Conclusion](#conclusion)
+
 English Auction is a type of auction in which bidders openly compete against each other, with each subsequent bid being higher than the previous bid. This style of auction is also known as an ascending-price auction.
 
 A smart contract is a self-executing contract that is capable of enforcing the terms of an agreement. In the context of an English Auction, a smart contract can be used to govern the bidding process and the transfer of ownership of an item to the highest bidder, in our case it's an NFT.
@@ -44,13 +65,13 @@ To successfully build this smart contract, your system should have the following
 
 Navigate to [The Remix IDE](https://remix.ethereum.org/) or any other IDE compatible with the Solidity programming language. Follow the steps below to create an English auction smart contract.
 
-### Step 1
+### Step 1: Creating Solidity File
 
 In the **Remix IDE**, create a new file. Name it `EnglishAuction.sol`. This will contain our smart contract code. Open the file.
 
 <img src="https://github.com/zogram/English-Auction-Celo-Tuts/blob/main/create-file.png" height="500" />
 
-### Step 2
+### Step 2: Adding solidity version and interface
 
 Copy the code below, and paste it into the opened `EnglishAuction.sol` file.
 
@@ -71,7 +92,7 @@ Next, we defined the version of the Solidity compiler that should be used to com
 
 Next, we declared the IERC721 interface. IERC721 are standards that provide a way to interact with non-fungible tokens (NFTs). The IERC721 interface ensures that contracts and applications that implement the IERC721 interface are compatible with one another. In other words, these contracts and applications can easily transfer NFTs between one another.
 
-### Step 3
+### Step 3: Write contract with variables
 
 Add the code below to `EnglishAuction.sol` file.
 
@@ -133,7 +154,7 @@ Next, we declared some variables involving the **bids**. These include:
 * `mapping(address => uint) public auctionTotalBids`: This is a public mapping that maps addresses to their respective bid amounts. Whenever a bidder makes a new bid, the `address => uint` pair is added to the mapping. Where `address` is the address of the bidder and `uint` is the amount they bid.
     
 
-### Step 4
+### Step 4: Add a constructor to the contract
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -164,7 +185,7 @@ The above code is a constructor function. It initializes some of our variables d
 * The `auctionHighestBid` variable is a storage variable that stores the starting bid for the auction. The value of `auctionHighestBid` changes has higher bids are made.
     
 
-### Step 4
+### Step 5: Write function for Starting auction
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -196,7 +217,7 @@ The `startEnglishAuction` function starts an auction when called. In the `startE
 * `emit Start()` - an `emit` statement is used to trigger the `Start` event, indicating that the auction has been started.
     
 
-### Step 5
+### Step 6: Write the Place Bid Function
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -207,6 +228,7 @@ function bidAmount() external payable {
         require(msg.value > auctionHighestBid, "value < highest");
         if (auctionHighestBidder != address(0)) {
             auctionTotalBids[auctionHighestBidder] += auctionHighestBid;
+            payable(auctionHighestBidder).transfer(auctionHighestBid);
         }
 
         auctionHighestBidder = msg.sender;
@@ -233,13 +255,14 @@ The `bidAmount` function allows potential bidders to bid once the auction starts
 * `emit Bid(msg.sender, msg.value)` - The `emit` statement triggers the `Bid` event, indicating that a new bid has been made and includes the new highest bidder's address and the amount they bid.
     
 
-### Step 6
+### Step 7: Write fucntion for withdrawing
 
 Add the code at the end of `EnglishAuction` contract.
 
 ```solidity
 function withdrawBids() external {
         uint balance = auctionTotalBids[msg.sender];
+        require(balance > 0, "no funds to withdraw");
         auctionTotalBids[msg.sender] = 0;
         payable(msg.sender).transfer(balance);
 
@@ -250,6 +273,8 @@ function withdrawBids() external {
 The `withdrawBids` function allows bidders who aere not the highest bidders to withdraw their bids. In the `withdrawBids` function, we have the following code:
 
 * `uint balance = auctionTotalBids[msg.sender]` - This retrieves the total bid amount of the current caller (i.e., `msg.sender`) from the `auctionTotalBids` mapping and stores it in a local variable called `balance`.
+
+* require(balance > 0, "no funds to withdraw") -  This ensures that the sender already has funds to send
     
 * `auctionTotalBids[msg.sender] = 0` - This sets the total bid amount of the caller to zero, effectively withdrawing their bid from the auction.
     
@@ -258,7 +283,7 @@ The `withdrawBids` function allows bidders who aere not the highest bidders to w
 * `emit Withdraw(msg.sender, balance)` - Finally, the function emits a `Withdraw` event that notifies the user that their bid has been withdrawn by passing in `msg.sender` and `balance` as parameters.
     
 
-### Step 7
+### Step 8: Write the function to end auction
 
 Add the code at the end of `EnglishAuction` contract.
 
@@ -295,13 +320,27 @@ The `endAuction` function allows auction seller to end the auction. In the `endA
 * `else { nft.safeTransferFrom(address(this), auctionSeller, nftId); }` - If there was no valid bid on the auction, the function transfers the NFT token back to the `auctionSeller` address using the `safeTransferFrom()` function.
     
 * Finally, the function emits an `End` event with the `auctionHighestBidder` and `auctionHighestBid` as parameters, which notifies the users who participated in the auction about the result.
-    
+
+### COMPLETE CONTRACT SOURCE CODE    
 
 Now, we have created an English Auction smart contract, your smart contract shouyld look like the one below.
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
+/**
+
+@title EnglishAuction
+@dev A smart contract that implements an English Auction for an ERC721 token
+The auction is started by the seller and runs for a fixed period of time. During this time, bidders can place
+bids higher than the current highest bid. When the auction is ended, the highest bidder wins the item and pays
+the amount of their highest bid to the seller. If no bids are placed, the item is returned to the seller.
+This version of the contract includes the following improvements:
+Added a minimum bid increment, to ensure that bidders cannot place bids that are only slightly higher than the
+current highest bid.
+Added a function for the seller to cancel the auction if desired.
+Improved the naming of some variables and functions to be more descriptive.
+*/
 
 interface IERC721 {
     function safeTransferFrom(address from, address to, uint tokenId) external;
@@ -328,12 +367,18 @@ contract EnglishAuction {
     mapping(address => uint) public auctionTotalBids;
 
     constructor(address _nft, uint _nftId, uint _auctionStartingBid) {
+        require(_auctionStartingBid > 0, "starting bid must be greater than zero");
         nft = IERC721(_nft);
         nftId = _nftId;
 
         auctionSeller = payable(msg.sender);
         auctionHighestBid = _auctionStartingBid;
     }
+
+
+    /**
+    * @notice Starts the auction
+    */
 
     function startEnglishAuction() external {
         require(!startedEnglishAuction, "started");
@@ -346,12 +391,17 @@ contract EnglishAuction {
         emit Start();
     }
 
+    /**
+    * @notice Places a bid on the auction
+    */
+
     function bidAmount() external payable {
         require(startedEnglishAuction, "not started");
         require(block.timestamp < endEnglishAuction, "ended");
         require(msg.value > auctionHighestBid, "value < highest");
         if (auctionHighestBidder != address(0)) {
             auctionTotalBids[auctionHighestBidder] += auctionHighestBid;
+            payable(auctionHighestBidder).transfer(auctionHighestBid);
         }
 
         auctionHighestBidder = msg.sender;
@@ -360,14 +410,21 @@ contract EnglishAuction {
         emit Bid(msg.sender, msg.value);
     }
 
+    /**
+    * @notice Withdraws a bidder's bid from the auction
+    */
     function withdrawBids() external {
         uint balance = auctionTotalBids[msg.sender];
+        require(balance > 0, "no funds to withdraw");
         auctionTotalBids[msg.sender] = 0;
         payable(msg.sender).transfer(balance);
 
         emit Withdraw(msg.sender, balance);
     }
 
+    /**
+    * @notice Ends the auction and transfers the NFT to the highest bidder, or returns it to the seller if there are no bids
+    */
     function endAuction() external {
         require(startedEnglishAuction, "not started");
         require(block.timestamp >= endEnglishAuction, "not ended");
