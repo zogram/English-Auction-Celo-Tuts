@@ -291,66 +291,86 @@ Now, we have created an English Auction Smart Contract, your Smart Contract shou
 
 ```solidity
 // SPDX-License-Identifier: MIT
+// This line specifies the license under which the contract is released
+
 pragma solidity ^0.8.17;
 
 interface IERC721 {
     function safeTransferFrom(address from, address to, uint tokenId) external;
-
-    function transferFrom(address, address, uint) external;
+    function transferFrom(address from, address to, uint tokenId) external;
 }
 
 contract EnglishAuction {
+    // Events for tracking the start, bid, withdraw, and end of the auction
     event Start();
     event Bid(address indexed sender, uint amount);
     event Withdraw(address indexed bidder, uint amount);
     event End(address winner, uint amount);
 
+    // Reference to the NFT contract and ID for the NFT to be auctioned
     IERC721 public nft;
     uint public nftId;
 
+    // Address of the seller and time when the auction will end
     address payable public auctionSeller;
     uint public endEnglishAuction;
+
+    // Booleans to track whether the auction has started and ended
     bool public startedEnglishAuction;
     bool public endedEnglishAuction;
 
+    // Address of the current highest bidder and their bid amount, along with mapping to track total bids by address
     address public auctionHighestBidder;
     uint public auctionHighestBid;
     mapping(address => uint) public auctionTotalBids;
 
+    // Constructor function to initialize the contract with the NFT contract reference, NFT ID, and starting bid
     constructor(address _nft, uint _nftId, uint _auctionStartingBid) {
         nft = IERC721(_nft);
         nftId = _nftId;
-
         auctionSeller = payable(msg.sender);
         auctionHighestBid = _auctionStartingBid;
     }
 
+    // Function to start the auction
     function startEnglishAuction() external {
-        require(!startedEnglishAuction, "started");
-        require(msg.sender == auctionSeller, "not auctionSeller");
+        // Require that the auction has not already started and only the seller can start the auction
+        require(!startedEnglishAuction, "Auction already started");
+        require(msg.sender == auctionSeller, "Only the auction seller can start the auction");
 
+        // Transfer the NFT to the contract and set the auction start time and boolean to true
         nft.transferFrom(msg.sender, address(this), nftId);
         startedEnglishAuction = true;
         endEnglishAuction = block.timestamp + 2 days;
 
+        // Emit the Start event
         emit Start();
     }
 
-    function bidAmount() external payable {
-        require(startedEnglishAuction, "not started");
-        require(block.timestamp < endEnglishAuction, "ended");
-        require(msg.value > auctionHighestBid, "value < highest");
+    // Function for bidders to place their bids
+    function bid() external payable {
+        // Require that the auction has started, has not ended, and the bid is greater than the current highest bid
+        require(startedEnglishAuction, "Auction not started yet");
+        require(block.timestamp < endEnglishAuction, "Auction has ended");
+        require(msg.value > auctionHighestBid, "Bid value must be greater than current highest bid");
+
+        // If there is a current highest bidder, add their bid amount to their total bids mapping
         if (auctionHighestBidder != address(0)) {
             auctionTotalBids[auctionHighestBidder] += auctionHighestBid;
         }
 
+        // Set the new highest bidder and bid amount and emit the Bid event
         auctionHighestBidder = msg.sender;
         auctionHighestBid = msg.value;
-
         emit Bid(msg.sender, msg.value);
     }
 
+    // Function for bidders to withdraw their bids if they are not the highest bidder
     function withdrawBids() external {
+        // Require that the bidder has funds to withdraw
+        require(auctionTotalBids[msg.sender] > 0, "No funds to withdraw");
+
+        // Transfer the funds to the bidder and set their total bids mapping to 0
         uint balance = auctionTotalBids[msg.sender];
         auctionTotalBids[msg.sender] = 0;
         payable(msg.sender).transfer(balance);
